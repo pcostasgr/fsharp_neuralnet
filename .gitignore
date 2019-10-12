@@ -28,3 +28,4 @@ msbuild.log
 msbuild.err
 msbuild.wrn
 
+.ionide/symbolCache.db
