@@ -19,6 +19,20 @@ module NeuralNet=
         | NeuralNetResult of NetNode list*Matrix
         | NeuralNetFailure of string 
 
+    let printNetLayer layer comment=
+        printfn "layer:%s" comment 
+        printfn "---------------------------------------------------"
+        printMtrx3 layer.input "Input"
+        printMtrx3 layer.weights "Weights"
+        printMtrx3 layer.bias "Bias"
+
+    let printNeuralNet nn=
+        nn |> List.iter (
+            fun netnode-> 
+                let layer=fst(netnode)
+                printNetLayer layer ""
+            ) 
+
     let sigmoid=fun x -> 
         let epsilon=exp -x 
         1.0 / ( 1.0 + epsilon )
@@ -49,26 +63,28 @@ module NeuralNet=
     let rec updateNetworkParameters network learningRate =
         match network with 
             | [] ->
-                printfn "Empty!!!"
+                printfn "Empty!!! Finish"
                 []
             | hh::tt ->
                 let derivs=snd(hh)
                 let dW=fst(derivs)
                 let dB=snd(derivs)
 
-                printMtrx3 dW "DW"
-                printMtrx3 dB "DB"
+                //printMtrx3 dW "DW"
+                //printMtrx3 dB "DB"
                 let node=fst(hh)
                 let weights=node.weights
                 let bias=node.bias 
 
-                printMtrx3 weights "weights"
-                printMtrx3 bias "bias"
+                //printMtrx3 weights "weights"
+                //printMtrx3 bias "bias"
                 let newWeights=updateParameters weights learningRate dW
                 let newBias=updateParameters bias learningRate dB
 
-                printMtrxS newWeights "new weight "
-                printMtrxS newBias "new bias"
+                //printMtrxS newWeights "new weight "
+                //printMtrxS newBias "new bias"
+
+                printfn "Update Iteration"
                 let result =match newWeights with 
                             | MatRes wm -> match newBias with 
                                             | MatRes bm ->                                    
@@ -83,6 +99,7 @@ module NeuralNet=
 
         printfn "1.trainNetworkDeriv "
         if List.isEmpty network then
+            printfn "NetworkDeriv is finished"
             NodeList network
         else 
 
@@ -91,33 +108,23 @@ module NeuralNet=
                 let prevNode=List.last calcNetwork 
                 let size=network.Length-calcNetwork.Length-1
 
-                printfn "size:%d" size 
-
+                //printfn "size:%d
                 let curNode=network.Item size
-
                 let prevdEdB=snd(snd(prevNode))
                 let prevW=fst(prevNode).weights
-
-                printMtrx3 prevdEdB "prevdEdB"
-                printMtrx3 prevW "prevW"
-
-
+                //printMtrx3 prevdEdB "prevdEdB"
+                //printMtrx3 prevW "prevW"
                 let transPrevW=transMtrx prevW 
-
                 //printfn "transPrevW"
                 //printMtrx transPrevW
-
                 let bind1=MulMatrix (MatRes prevdEdB) transPrevW
                 let layer=fst(curNode)
-
                 let execLayer=executeLayer layer activationDerivFunction
-
               // printfn "bind1:"
               //  printMtrx bind1
 
              //   printfn "layer:"
               //  printMtrx execLayer 
-
                 let dEdB=MulVectors bind1 execLayer 
                 
                 let dEdW=
@@ -166,6 +173,7 @@ module NeuralNet=
 
                 match result with 
                     | NodeList n ->
+                        //printNeuralNet n 
                         printfn "Update Parameters !!" 
                         let newNetwork=updateNetworkParameters n learningRate 
                         match newNetwork with 
@@ -185,7 +193,10 @@ module NeuralNet=
                 let newLayer={input=input;weights=layer.weights;bias=layer.bias }
                 let output=executeLayer newLayer activationFunction
                 match output with
-                | MatRes m ->NeuralNetResult (nn @ [(newLayer,snd(elem))],m)
+                | MatRes m ->
+                    //printNetLayer newLayer "exec Layer"
+                    printMtrx3 m "foldFun Output"
+                    NeuralNetResult (netlist @ [(newLayer,snd(elem))],m)
                 | Fail f -> NeuralNetFailure ( "match output " + f )
             | NeuralNetFailure f -> NeuralNetFailure f 
 
@@ -253,7 +264,14 @@ module NeuralNet=
 
         let network=[ (layer,derivs) ; (layer2,derivs) ]
 
-        let result=ExecuteNN input network actFun
+        let result=ExecuteNN input network sigmoid
+       (* match result with 
+        | NeuralNetResult (list, m) ->
+            printMtrx3 m  "Output"
+
+        | NeuralNetFailure f -> printfn "General fail %s"  f
+*)
+
 
         
         let actualOutput ={
@@ -262,15 +280,23 @@ module NeuralNet=
             width=2 
         }
 
+
         match result with 
-        | NeuralNetResult (list, m) ->
+        | NeuralNetResult (newNetwork, m) ->
             printMtrx3 m  "Output"
-            let trainResult=trainNetwork m actualOutput network 0.6 sigmoidDeriv 
+
+            printfn "DEBUG 1-------------------------------------------------------" 
+            printNeuralNet newNetwork
+            printfn "DEBUG 2-------------------------------------------------------" 
+            let trainResult=trainNetwork m actualOutput newNetwork 0.6 sigmoidDeriv 
 
             match trainResult with 
-            | NodeList l -> printfn "New network !!!!"
+            | NodeList l -> 
+                printfn "New network !!!!"
+                //printNeuralNet l
             | Failure f -> printfn "failure: %s " f  
 
         | NeuralNetFailure f -> printfn "General fail %s"  f
 
         0
+        
