@@ -27,6 +27,8 @@ module NeuralNet=
         printMtrx3 layer.bias "Bias"
 
     let printNeuralNet nn=
+        let nodeNo=List.length nn 
+        printfn "Node No:%d" nodeNo
         nn |> List.iter (
             fun netnode-> 
                 let layer=fst(netnode)
@@ -174,7 +176,7 @@ module NeuralNet=
                 match result with 
                     | NodeList n ->
                         //printNeuralNet n 
-                        printfn "Update Parameters !!" 
+                        printfn "Update Parameters !!"
                         let newNetwork=updateNetworkParameters n learningRate 
                         match newNetwork with 
                         | hh::tt -> NodeList (hh::tt)
@@ -195,19 +197,25 @@ module NeuralNet=
                 match output with
                 | MatRes m ->
                     //printNetLayer newLayer "exec Layer"
-                    printMtrx3 m "foldFun Output"
-                    NeuralNetResult (netlist @ [(newLayer,snd(elem))],m)
+                   // printMtrx3 m "foldFun Output"
+                    match netlist with 
+                    | [] ->NeuralNetResult ([(newLayer,snd(elem))],m)
+                    | hh::tt ->NeuralNetResult (netlist @ [(newLayer,snd(elem))],m)
+
                 | Fail f -> NeuralNetFailure ( "match output " + f )
             | NeuralNetFailure f -> NeuralNetFailure f 
 
-        let startState=([List.head(nn)],input) 
+        let startState=([],input)
         List.fold foldFun (NeuralNetResult startState) nn
 
-    let rec TrainNN iterations actualOutput inputs network actFun actDerivFun learnRate=
+    let rec TrainNN iterations inputs network actFun actDerivFun learnRate=
 
-        let closureFoldFun neuralNet inputNode =
+        let closureFoldFun neuralNet input =
             match neuralNet with 
             | NodeList nn ->
+                let inputNode=fst(input)
+                let actualOutput=snd(input)
+
                 let calcOutput=ExecuteNN inputNode nn actFun
                 match calcOutput with 
                     | NeuralNetResult (netList,output) ->
@@ -224,7 +232,7 @@ module NeuralNet=
 
             let newNetwork=List.fold closureFoldFun (NodeList network) inputs 
             let newnn=match newNetwork with 
-                        | NodeList nn -> TrainNN (iterations-1)  actualOutput inputs nn actFun actDerivFun learnRate
+                        | NodeList nn -> TrainNN (iterations-1)  inputs nn actFun actDerivFun learnRate
                         | Failure f -> Failure f 
             newnn
         else
@@ -232,71 +240,8 @@ module NeuralNet=
 
 
 
-    let testCalcOutput=
-        let input={
-            m=[|3.0 ;3.0 ; 3.0;3.0 |]
-            height=1
-            width=4
-        }
-        
-        let unitWeights=identityMtrx 4 2
-        let zeroBias={
-            m=[|0.0;0.0|]
-            height=1
-            width=2
-        }
-
-        let actFun = fun f -> 2.0*f
-
-        let layer=
-            {
-                    input=input
-                    weights=createRandMtrx 4 2 
-                    bias=createRandMtrx 1 2
-            }
-
-        let layer2={
-            input=identityMtrx 1 2
-            weights=createRandMtrx 2 2
-            bias=createRandMtrx 1 2 
-        } 
-        let derivs =(identityMtrx 3 2,identityMtrx 1 2)
-
-        let network=[ (layer,derivs) ; (layer2,derivs) ]
-
-        let result=ExecuteNN input network sigmoid
-       (* match result with 
-        | NeuralNetResult (list, m) ->
-            printMtrx3 m  "Output"
-
-        | NeuralNetFailure f -> printfn "General fail %s"  f
-*)
-
+ 
+   
 
         
-        let actualOutput ={
-            m=[|1.0;0.0|]
-            height=1
-            width=2 
-        }
-
-
-        match result with 
-        | NeuralNetResult (newNetwork, m) ->
-            printMtrx3 m  "Output"
-
-            printfn "DEBUG 1-------------------------------------------------------" 
-            printNeuralNet newNetwork
-            printfn "DEBUG 2-------------------------------------------------------" 
-            let trainResult=trainNetwork m actualOutput newNetwork 0.6 sigmoidDeriv 
-
-            match trainResult with 
-            | NodeList l -> 
-                printfn "New network !!!!"
-                //printNeuralNet l
-            | Failure f -> printfn "failure: %s " f  
-
-        | NeuralNetFailure f -> printfn "General fail %s"  f
-
-        0
         
