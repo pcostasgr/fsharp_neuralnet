@@ -10,8 +10,6 @@ let main argv =
 
     printfn "Yeditech Neural Network 10/2019 "
     printfn "-------------------------------------------------------------------------------"
-    printfn "Train network"
-    //List.iter (fun x -> printfn "elem:%d" x ) result  
 
     let input1={
             m=[|3.0 ;3.0 ; 0.0;0.0 |]
@@ -26,7 +24,7 @@ let main argv =
         }
 
     let input3={
-            m=[|0.0 ;0.0 ; 3.0;3.0 |]
+            m=[|1.0 ;0.0 ; 2.0;3.0 |]
             height=1
             width=4
         }
@@ -65,9 +63,6 @@ let main argv =
     let inputList2=[ (input1,output1)]
     let timer=System.Diagnostics.Stopwatch()
 
-
-    //printNeuralNet network 
-
     let iterations=1000
     let learningRate=0.6
     printfn "Start training"
@@ -80,7 +75,7 @@ let main argv =
 
     match trainResult with 
     | NodeList n ->
-         printfn "New Network-------------------------------------------------"
+         //printfn "New Network-------------------------------------------------"
          //printNeuralNet n
 
          printMtrx3 input3 "Test Input"
