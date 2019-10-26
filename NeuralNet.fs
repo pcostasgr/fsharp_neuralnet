@@ -65,7 +65,7 @@ module NeuralNet=
     let rec updateNetworkParameters network learningRate =
         match network with 
             | [] ->
-                printfn "Empty!!! Finish"
+               // printfn "Empty!!! Finish"
                 []
             | hh::tt ->
                 let derivs=snd(hh)
@@ -86,7 +86,7 @@ module NeuralNet=
                 //printMtrxS newWeights "new weight "
                 //printMtrxS newBias "new bias"
 
-                printfn "Update Iteration"
+               // printfn "Update Iteration"
                 let result =match newWeights with 
                             | MatRes wm -> match newBias with 
                                             | MatRes bm ->                                    
@@ -99,9 +99,9 @@ module NeuralNet=
 
     let rec trainNetworkDeriv (calcNetwork:NetNode list) (network: NetNode list) (activationDerivFunction:float->float):DerivType<NetNode list,NeuralNetErrorType> =
 
-        printfn "1.trainNetworkDeriv "
+        //printfn "1.trainNetworkDeriv "
         if List.isEmpty network then
-            printfn "NetworkDeriv is finished"
+            //printfn "NetworkDeriv is finished"
             NodeList network
         else 
 
@@ -176,7 +176,7 @@ module NeuralNet=
                 match result with 
                     | NodeList n ->
                         //printNeuralNet n 
-                        printfn "Update Parameters !!"
+                        //printfn "Update Parameters !!"
                         let newNetwork=updateNetworkParameters n learningRate 
                         match newNetwork with 
                         | hh::tt -> NodeList (hh::tt)
@@ -210,6 +210,8 @@ module NeuralNet=
 
     let rec TrainNN iterations inputs network actFun actDerivFun learnRate=
 
+        printfn "Current Iteration:%i" iterations
+
         let closureFoldFun neuralNet input =
             match neuralNet with 
             | NodeList nn ->
@@ -219,7 +221,7 @@ module NeuralNet=
                 let calcOutput=ExecuteNN inputNode nn actFun
                 match calcOutput with 
                     | NeuralNetResult (netList,output) ->
-                        printMtrx3 output "NN Output:"
+                        //printMtrx3 output "NN Output:"
                         let trainResult=trainNetwork output actualOutput nn learnRate sigmoidDeriv 
                         match trainResult with 
                             | NodeList l -> NodeList l
