@@ -65,7 +65,7 @@ module NeuralNet=
     let rec updateNetworkParameters network learningRate =
         match network with 
             | [] ->
-               // printfn "Empty!!! Finish"
+               // printfn "update Params Empty!!! Finish"
                 []
             | hh::tt ->
                 let derivs=snd(hh)
@@ -79,7 +79,7 @@ module NeuralNet=
                 let bias=node.bias 
 
                 //printMtrx3 weights "weights"
-                //printMtrx3 bias "bias"
+                //printMtrx3 bias "previus bias"
                 let newWeights=updateParameters weights learningRate dW
                 let newBias=updateParameters bias learningRate dB
 
@@ -175,7 +175,8 @@ module NeuralNet=
 
                 match result with 
                     | NodeList n ->
-                        //printNeuralNet n 
+                      //  printfn "Before parameter updating "
+                       // printNeuralNet n 
                         //printfn "Update Parameters !!"
                         let newNetwork=updateNetworkParameters n learningRate 
                         match newNetwork with 
@@ -190,17 +191,19 @@ module NeuralNet=
         
         let foldFun acc elem =
             match acc with 
-            | NeuralNetResult (netlist,input) ->
+            | NeuralNetResult (netlist,inputMatrix) ->
+
+                //printMtrx3 inputMatrix "Real Input"
                 let layer=fst(elem)
-                let newLayer={input=input;weights=layer.weights;bias=layer.bias }
+                let newLayer={input=inputMatrix;weights=layer.weights;bias=layer.bias }
                 let output=executeLayer newLayer activationFunction
                 match output with
-                | MatRes m ->
-                    //printNetLayer newLayer "exec Layer"
+                | MatRes outputMatrix ->
+                   // printNetLayer newLayer "exec Layer"
                    // printMtrx3 m "foldFun Output"
                     match netlist with 
-                    | [] ->NeuralNetResult ([(newLayer,snd(elem))],m)
-                    | hh::tt ->NeuralNetResult (netlist @ [(newLayer,snd(elem))],m)
+                    | [] ->NeuralNetResult ([(newLayer,snd(elem))],outputMatrix)
+                    | hh::tt ->NeuralNetResult (netlist @ [(newLayer,snd(elem))],outputMatrix)
 
                 | Fail f -> NeuralNetFailure ( "match output " + f )
             | NeuralNetFailure f -> NeuralNetFailure f 
@@ -210,19 +213,20 @@ module NeuralNet=
 
     let rec TrainNN iterations inputs network actFun actDerivFun learnRate=
 
-        printfn "Current Iteration:%i" iterations
+        //printfn "Current Iteration:%i" iterations
 
-        let closureFoldFun neuralNet input =
+        let closureFoldFun neuralNet inputData =
             match neuralNet with 
             | NodeList nn ->
-                let inputNode=fst(input)
-                let actualOutput=snd(input)
+                let input=fst(inputData)
+                let actualOutput=snd(inputData)
 
-                let calcOutput=ExecuteNN inputNode nn actFun
+                let calcOutput=ExecuteNN input nn actFun
                 match calcOutput with 
                     | NeuralNetResult (netList,output) ->
+                        //printNeuralNet netList
                         //printMtrx3 output "NN Output:"
-                        let trainResult=trainNetwork output actualOutput nn learnRate sigmoidDeriv 
+                        let trainResult=trainNetwork output actualOutput netList learnRate actDerivFun 
                         match trainResult with 
                             | NodeList l -> NodeList l
                             | Failure f -> Failure  ("failure:" + f)  

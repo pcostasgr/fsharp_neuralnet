@@ -9,7 +9,6 @@ open BNN.NeuralNet
 let main argv =
 
     printfn "Yeditech Neural Network 10/2019 "
-
     printfn "-------------------------------------------------------------------------------"
     printfn "Train network"
     //List.iter (fun x -> printfn "elem:%d" x ) result  
@@ -30,14 +29,6 @@ let main argv =
             m=[|0.0 ;0.0 ; 3.0;3.0 |]
             height=1
             width=4
-        }
-
-    let unitWeights=identityMtrx 4 2
-
-    let zeroBias={
-            m=[|0.0;0.0|]
-            height=1
-            width=2
         }
 
     let layer=
@@ -69,27 +60,36 @@ let main argv =
             width=2 
         }
 
-    let inputList=[ (input1,output1) ; (input2,output2)  ]
+    let inputList1=[ (input1,output1) ; (input2,output2)  ]
 
+    let inputList2=[ (input1,output1)]
     let timer=System.Diagnostics.Stopwatch()
 
+
+    //printNeuralNet network 
+
     let iterations=1000
-    let learningRate=0.4
+    let learningRate=0.6
     printfn "Start training"
     printfn "Layer no:%i" network.Length
     printfn "Iterations:%i" iterations 
     printfn "Learning Rate:%f" learningRate
 
     timer.Start()
-    let trainResult=TrainNN iterations inputList network sigmoid sigmoidDeriv learningRate
+    let trainResult=TrainNN iterations inputList1 network sigmoid sigmoidDeriv learningRate
 
     match trainResult with 
     | NodeList n ->
-         printfn "New Network"
+         printfn "New Network-------------------------------------------------"
+         //printNeuralNet n
+
+         printMtrx3 input3 "Test Input"
          let execResult=ExecuteNN input3 n sigmoid
          match execResult with 
          | NeuralNetResult (newNetwork,output) ->
-                            printMtrx3 output "Final Output:"
+                            printMtrx3 output "Test Output:"
+
+                            printMtrx3 output2 "Real Output"
          | NeuralNetFailure f -> printfn "exec failure %s" f  
          
     | Failure f  -> printfn "General failure %s" f 
