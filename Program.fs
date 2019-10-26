@@ -5,17 +5,10 @@ open System
 open BNN.MathMod
 open BNN.NeuralNet
 
- type MyResult<'R,'F> =
-        | Res of 'R
-        | Fail of 'F
-
-
-type SomeType=string*string
-
 [<EntryPoint>]
 let main argv =
 
-    printfn "Yeditech Neural Network 10/2019"
+    printfn "Yeditech Neural Network 10/2019 "
 
     printfn "-------------------------------------------------------------------------------"
     printfn "Train network"
@@ -65,28 +58,15 @@ let main argv =
     let trainResult=TrainNN 2 inputList network sigmoid sigmoidDeriv 0.6
 
     match trainResult with 
-    | NodeList n -> printfn "New Network"
+    | NodeList n ->
+         printfn "New Network"
+         let execResult=ExecuteNN input n sigmoid
+         match execResult with 
+         | NeuralNetResult (newNetwork,output) ->
+                            printMtrx3 output "Output:"
+         | NeuralNetFailure f -> printfn "exec failure %s" f  
+         
     | Failure f  -> printfn "failure %s" f 
 
-(*
-    let result=ExecuteNN input network sigmoid
-    
-    match result with 
-        | NeuralNetResult (newNetwork, m) ->
-            printMtrx3 m  "Output"
-
-            printfn "DEBUG 1-------------------------------------------------------" 
-            printNeuralNet newNetwork
-            printfn "DEBUG 2-------------------------------------------------------" 
-            let trainResult=trainNetwork m actualOutput newNetwork 0.6 sigmoidDeriv 
-
-            match trainResult with 
-            | NodeList l -> 
-                printfn "New network !!!!"
-                printNeuralNet l
-            | Failure f -> printfn "failure: %s " f  
-
-        | NeuralNetFailure f -> printfn "General fail %s"  f
-*)
 
     0 // return an integer exit code
